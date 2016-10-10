@@ -1,0 +1,342 @@
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd
+    http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+    
+    <changeSet id="changelog-6.06.00" author="msultan">
+        <comment>Update congestion view to unify the reporting detectors</comment>
+        <createView catalogName="cat"
+                    replaceIfExists="true"
+                    schemaName="public"
+                    viewName="most_recent_occupancy_view">
+            SELECT DISTINCT detector.detector_id,
+	            detector.detector_name,
+	            occupancy.reported_timestamp,
+	            occupancy.stationary,
+	            occupancy.very_slow,
+	            occupancy.slow,
+	            occupancy.moderate,
+	            occupancy.free,
+	            CASE
+	            WHEN occupancy.queue_present = 9 THEN 'QUEUEING'::text
+	            WHEN occupancy.queue_present = 0 THEN 'NO QUEUE'::text
+	            ELSE 'CALCULATING'::text
+	            END AS queue
+            FROM detector
+            LEFT JOIN occupancy ON detector.detector_id::text = occupancy.detector_id::text
+            JOIN ( SELECT occupancy_1.detector_id,
+            			max(occupancy_1.reported_timestamp) AS reported_timestamp
+            		FROM occupancy occupancy_1
+            		GROUP BY occupancy_1.detector_id) most_recent_occupancy
+            ON detector.detector_id::text = most_recent_occupancy.detector_id::text
+            AND occupancy.reported_timestamp = most_recent_occupancy.reported_timestamp
+            AND occupancy.reported_timestamp > (now() - '00:05:00'::interval);
+        </createView>
+
+        <rollback>
+            <createView catalogName="cat"
+                            replaceIfExists="true"
+                            schemaName="public"
+                        viewName="most_recent_occupancy_view">
+                SELECT detector.detector_id,
+	                detector.detector_name,
+		            occupancy.reported_timestamp,
+	                occupancy.stationary,
+	                occupancy.very_slow,
+	                occupancy.slow,
+	                occupancy.moderate,
+	                occupancy.free,
+	                CASE
+	                WHEN occupancy.queue_present = 9 THEN 'QUEUEING'::text
+	                WHEN occupancy.queue_present = 0 THEN 'NO QUEUE'::text
+	                ELSE 'CALCULATING'::text
+	                END AS queue
+                FROM detector
+                LEFT JOIN occupancy ON detector.detector_id::text = occupancy.detector_id::text
+                JOIN ( SELECT occupancy_1.detector_id,
+                			max(occupancy_1.reported_timestamp) AS reported_timestamp
+                		FROM occupancy occupancy_1
+                		GROUP BY occupancy_1.detector_id) most_recent_occupancy
+                ON detector.detector_id::text = most_recent_occupancy.detector_id::text
+                AND occupancy.reported_timestamp = most_recent_occupancy.reported_timestamp
+                AND occupancy.reported_timestamp > (now() - '00:05:00'::interval);
+            </createView>
+        </rollback>
+
+    </changeSet>
+
+
+    <!--ADDITIONAL DEFAULT CONFIGRATION CHANGES-->
+    <changeSet id="changelog-6.06.1" author="nchavan">
+        <comment>Updating default values in detector configration table</comment>
+       
+            <addDefaultValue tableName="detector_configuration" 
+                             columnDataType="int" 
+                             schemaName="public" 
+                             columnName="settingsCollectionInterval2" 
+                             defaultValue="5"/>
+            
+            <addDefaultValue tableName="detector_configuration" 
+                             columnDataType="varchar" 
+                             schemaName="public" 
+                             columnName="urlCongestionReporting" 
+                             defaultValue="http://www.bluetruth.co.uk/BlueTruthReceiver2/Congestion"/>
+            
+            <addDefaultValue tableName="detector_configuration" 
+                             columnDataType="varchar" 
+                             schemaName="public" 
+                             columnName="urlCongestionReports" 
+                             defaultValue="http://www.bluetruth.co.uk/BlueTruthReceiver2/Congestion"/>
+            
+            <addDefaultValue tableName="detector_configuration" 
+                             columnDataType="varchar" 
+                             schemaName="public" 
+                             columnName="urlJourneyTimesReporting" 
+                             defaultValue="http://www.bluetruth.co.uk/BlueTruthReceiver1_50/DeviceDetection/Europe/London"/>
+            
+            <addDefaultValue tableName="detector_configuration" 
+                             schemaName="public" 
+                             columnDataType="varchar" 
+                             columnName="urlAlertAndStatusReports" 
+                             defaultValue=""/>
+            
+            <addDefaultValue tableName="detector_configuration" 
+                             schemaName="public" 
+                             columnDataType="varchar" 
+                             columnName="urlStatusReports" 
+                             defaultValue="http://www.bluetruth.co.uk/BlueTruthReceiver2/Status"/>
+            
+            <addDefaultValue tableName="detector_configuration" 
+                             schemaName="public" 
+                             columnDataType="varchar" 
+                             columnName="urlFaultReports" 
+                             defaultValue="http://www.bluetruth.co.uk/BlueTruthReceiver2/Fault"/>
+            
+            <addDefaultValue tableName="detector_configuration" 
+                             schemaName="public" 
+                             columnDataType="varchar" 
+                             columnName="urlStatisticsReports" 
+                             defaultValue="http://www.bluetruth.co.uk/BlueTruthReceiver2/Statistics"/>
+            
+            <addDefaultValue tableName="detector_configuration" 
+                             schemaName="public" 
+                             columnDataType="varchar" 
+                             columnName="urlIniFileDownload" 
+                             defaultValue="http://www.bluetruth.co.uk/DetectorConfigurationDownload/2_00/"/>
+            
+            <addDefaultValue tableName="detector_configuration" 
+                             schemaName="public" 
+                             columnDataType="int"
+                             columnName="backgroundLatchTimeThresholdInSeconds" 
+                             defaultValue="60"/>
+            
+            <addDefaultValue tableName="detector_configuration" 
+                             schemaName="public" 
+                             columnDataType="int"
+                             columnName="backgroundClearanceTimeThresholdInSeconds" 
+                             defaultValue="345600"/>
+            
+            <!-- freeFlowBinThresholdInSeconds is marked as speedBinFree-->
+            <addDefaultValue tableName="detector_configuration" 
+                             schemaName="public"
+                             columnDataType="int"  
+                             columnName="speedBinFree"
+                             defaultValue="10"/>
+            
+            <!--moderateFlowBinThresholdInSeconds is marked as speedBinMod -->
+            <addDefaultValue tableName="detector_configuration" 
+                             schemaName="public"
+                             columnDataType="int"  
+                             columnName="speedBinMod"
+                             defaultValue="10"/>
+            
+            <!-- slowFlowBinThresholdInSeconds is marked as speedBinSlow -->
+            <addDefaultValue tableName="detector_configuration" 
+                             schemaName="public"
+                             columnDataType="int"  
+                             columnName="speedBinSlow"
+                             defaultValue="10"/>
+            
+            <!-- normalFlowBinThresholdInSeconds is marked as speedBinNrStat -->
+            <addDefaultValue tableName="detector_configuration" 
+                             schemaName="public"
+                             columnDataType="int"  
+                             columnName="speedBinNrStat"
+                             defaultValue="10"/>
+            
+            <!-- verySlowFlowBinThresholdInSeconds is marked as speedBinVSlow -->
+            <addDefaultValue tableName="detector_configuration" 
+                             schemaName="public"
+                             columnDataType="int"  
+                             columnName="speedBinVSlow"
+                             defaultValue="10"/>
+            
+            <!-- btMACBinDropOutScanCycle is also called absenceThresholdInSeconds -->
+            <!--queueClearanceThresholdDetectionNumber(v3) or absenceThresholdInSeconds (v4)-->
+            <addDefaultValue tableName="detector_configuration" 
+                             schemaName="public"
+                             columnDataType="int"  
+                             columnName="absenceThresholdInSeconds"
+                             defaultValue="60"/>
+            
+            <addDefaultValue tableName="detector_configuration" 
+                             schemaName="public"
+                             columnDataType="int"  
+                             columnName="queueAlertThresholdBin"
+                             defaultValue="4"/>
+            
+            <addDefaultValue tableName="detector_configuration" 
+                             schemaName="public"
+                             columnDataType="int"  
+                             columnName="queueClearanceThreshold"
+                             defaultValue="3"/>
+            
+            <addDefaultValue tableName="detector_configuration" 
+                            schemaName="public"
+                            columnDataType="int"  
+                            columnName="queueDetectionStartupIntervalInSeconds"
+                            defaultValue="60"/>                 
+                
+            <rollback>
+                <addDefaultValue tableName="detector_configuration" 
+                                  columnDataType="int" 
+                                  schemaName="public" 
+                                  columnName="settingsCollectionInterval2" 
+                                  defaultValue="5"/>
+                
+                <dropDefaultValue catalogName="cat"
+                                  schemaName="public" 
+                                  tableName="detector_configuration" 
+                                  columnName="urlCongestionReporting"/>
+                
+                <dropDefaultValue catalogName="cat"
+                                  schemaName="public" 
+                                  tableName="detector_configuration" 
+                                  columnName="urlCongestionReports"/>
+                
+                <dropDefaultValue catalogName="cat"
+                                  schemaName="public" 
+                                  tableName="detector_configuration" 
+                                  columnName="urlJourneyTimesReporting"/>
+                
+                <dropDefaultValue catalogName="cat"
+                                  schemaName="public" 
+                                  tableName="detector_configuration" 
+                                  columnName="urlAlertAndStatusReports"/>
+                
+                <dropDefaultValue catalogName="cat"
+                                  schemaName="public" 
+                                  tableName="detector_configuration" 
+                                  columnName="urlStatusReports"/>
+                
+                <dropDefaultValue catalogName="cat"
+                                  schemaName="public" 
+                                  tableName="detector_configuration" 
+                                  columnName="urlFaultReports"/>
+                
+                <dropDefaultValue catalogName="cat"
+                                  schemaName="public" 
+                                  tableName="detector_configuration" 
+                                  columnName="urlStatisticsReports"/>
+                
+                <dropDefaultValue catalogName="cat"
+                                  schemaName="public" 
+                                  tableName="detector_configuration" 
+                                  columnName="backgroundLatchTimeThresholdInSeconds"/>
+                
+                <dropDefaultValue catalogName="cat"
+                                  schemaName="public" 
+                                  tableName="detector_configuration" 
+                                  columnName="backgroundClearanceTimeThresholdInSeconds"/>
+                
+                <addDefaultValue tableName="detector_configuration" 
+                                  columnDataType="int" 
+                                  schemaName="public" 
+                                  columnName="speedBinFree" 
+                                  defaultValue="0"/>
+                
+                <addDefaultValue tableName="detector_configuration" 
+                                  columnDataType="int" 
+                                  schemaName="public" 
+                                  columnName="speedBinMod" 
+                                  defaultValue="0"/>
+            
+                <addDefaultValue tableName="detector_configuration" 
+                                  columnDataType="int" 
+                                  schemaName="public" 
+                                  columnName="speedBinSlow" 
+                                  defaultValue="0"/>
+                        
+                <addDefaultValue tableName="detector_configuration" 
+                                  columnDataType="int" 
+                                  schemaName="public" 
+                                  columnName="speedBinNrStat" 
+                                  defaultValue="0"/>
+                
+                <addDefaultValue tableName="detector_configuration" 
+                                  columnDataType="int" 
+                                  schemaName="public" 
+                                  columnName="speedBinVSlow" 
+                                 defaultValue="0"/>
+                
+                <dropDefaultValue catalogName="cat"
+                                  schemaName="public" 
+                                  tableName="detector_configuration" 
+                                  columnName="absenceThresholdInSeconds"/>
+                
+                <dropDefaultValue catalogName="cat"
+                                  schemaName="public" 
+                                  tableName="detector_configuration" 
+                                  columnName="queueAlertThresholdBin"/>
+                
+                <dropDefaultValue catalogName="cat"
+                                  schemaName="public" 
+                                  tableName="detector_configuration" 
+                                  columnName="queueClearanceThreshold"/>
+                
+                <dropDefaultValue catalogName="cat"
+                                  schemaName="public" 
+                                  tableName="detector_configuration" 
+                                  columnName="queueDetectionStartupIntervalInSeconds"/>
+                                
+            </rollback>                                        
+    </changeSet>  
+    
+    <!--ADDING NEW COLUMNS TO DETECTOR CONFIGURATION-->        
+    <changeSet author="nchavan" id="changelog-6.06.2">
+        <comment>Inserting new columns in detector configration table</comment>
+        <addColumn catalogName="cat"
+            schemaName="public"
+            tableName="detector_configuration">
+                <column name="statisticsReportContents" type="varchar(255)" defaultValue="full"/>
+                <column name="reportStorageCapacity" type="int" defaultValue="1000"/>
+                <column name="initialStartupDelayInSeconds" type="int" defaultValue="30"/>    
+        </addColumn>
+        <rollback>
+              <dropColumn catalogName="cat" 
+                          schemaName="public" 
+                          tableName="detector_configuration" columnName="statisticsReportContents"/>
+              <dropColumn catalogName="cat" 
+                          schemaName="public" 
+                          tableName="detector_configuration" columnName="reportStorageCapacity"/>
+              <dropColumn catalogName="cat" 
+                          schemaName="public" 
+                          tableName="detector_configuration" columnName="initialStartupDelayInSeconds"/>
+        </rollback>
+    </changeSet>       
+    
+    <changeSet id="changelog-6.06.3" author="nchavan">
+        <comment>Added columns: detector_configuration.detectorReportingStatusInMinutes and detectorDegradedStatusInMinutes</comment>
+        <addColumn catalogName="cat" schemaName="public" tableName="detector_configuration">
+            <column name="detectorReportingStatusInMinutes" type="int" defaultValue="60">
+                <constraints nullable="false"/>
+            </column>
+            <column name="detectorDegradedStatusInMinutes" type="int" defaultValue="120">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+     
+</databaseChangeLog>

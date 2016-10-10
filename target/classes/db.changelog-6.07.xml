@@ -1,0 +1,36 @@
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd
+    http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+    
+    <changeSet id="changelog-6.07.01" author="msultan">
+        <comment>Add new value for considering a detector silent and delete unneeded column</comment>
+        <addColumn catalogName="bluetruth"
+                       schemaName="public"
+                       tableName="detector_configuration">
+            <column name="silentThresholdDelayInSeconds" type="int" defaultValue="60">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <dropColumn catalogName="cat"
+                    schemaName="public"
+                    tableName="detector_configuration" columnName="detectorDegradedStatusInMinutes"/>
+        
+
+        <rollback>
+            <addColumn catalogName="cat" schemaName="public" tableName="detector_configuration">
+                <column name="detectorDegradedStatusInMinutes" type="int" defaultValue="120">
+                    <constraints nullable="false"/>
+                </column>
+            </addColumn>
+            <dropColumn catalogName="bluetruth"
+                        schemaName="public"
+                        tableName="detector_configuration"
+                        columnName="silentThresholdDelayInSeconds"/>
+        </rollback>
+
+    </changeSet>
+
+</databaseChangeLog>

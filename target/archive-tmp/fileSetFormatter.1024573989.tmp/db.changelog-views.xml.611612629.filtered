@@ -1,0 +1,539 @@
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd
+    http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+    
+    <changeSet id="configuration_view_version_1_50" author="eedwards" runOnChange="true">
+        <comment>configuration_view_version_1_50</comment>
+        <createView
+            replaceIfExists="true"
+            schemaName="public"
+            viewName="configuration_view_version_1_50">
+            SELECT d.location AS "Location",
+            d.detector_name AS "OutStationName",
+            d.detector_id AS "outstationID",
+            d.carriageway,
+            d.mode AS "OutStationMode",
+            dc."pathToLocalLogFile",
+            dc."localLogFileName",
+            dc."pathLocalIniFile",
+            dc."iniFileLocalName",
+            dc."urlCongestionReporting",
+            dc."urlJourneyTimesReporting",
+            dc."urlLogFileUpload",
+            dc."urlIniFileDownload" AS "urlIniFileDwnload",
+            dc."alertTarget1",
+            dc."alertTarget2",
+            dc."alertTarget3",
+            dc."pingTestAddress",
+            dc."pingTestTimeout",
+            dc."heartBeatPeriod",
+            boolean_to_integer(dc."sendGpsData") AS "sendGpsData",
+            dc."hysteresisInterval" AS "hysterisisInterval",
+            dc."httpTimeOut",
+            dc."commsFailBufferTimeLimit",
+            boolean_to_integer(dc."debugMode") AS "debugMode",
+            boolean_to_integer(dc."upLoadErrs") AS "upLoadErrs",
+            boolean_to_integer(dc."requestLogs") AS "requestLogs",
+            boolean_to_integer(dc."rebootDevice") AS "rebootDevice",
+            dc."startIdleDate" AS "startIdlleDate",
+            dc."stopIdleDate",
+            boolean_to_integer(dc."idleDaily") AS "idleDaily",
+            dc."idleDailystartTime",
+            dc."idleDailystopTime",
+            dc."daysToIgnore",
+            dc.lanes,
+            dc."lengthOfRoad",
+            dc."averageLengthOfVehicle",
+            dc."heavyOccupancyThreshold",
+            dc."moderateOccupancyThreshold",
+            dc."lightOccupancyThreshold",
+            dc."inquiryCyclePeriod",
+            dc."queueDetectThreshold" AS "queueDetectThr",
+            dc."defaultStaticCyclesThreshold",
+            dc."staticSpeedCyclesThreshold",
+            dc."verySlowSpeedCyclesThreshold",
+            dc."slowSpeedCyclesThreshold",
+            dc."moderateSpeedCyclesThreshold",
+            dc."freeFlowSpeedCyclesThreshold",
+            dc."deviceDiscoveryMaxDevices",
+            dc."settingsCollectionInterval1",
+            dc."settingsCollectionInterval2",
+            dc."checkForUpdates",
+            dc."urlAlertAndStatusReports" AS "urlStandAloneReporting",
+            dc."failedIniFileReadRetryCounterThr",
+            dc."signatureAveragingCountMax",
+            dc."headwayFree" AS "headwayAt70",
+            dc."headwayMod" AS "headwayAt50",
+            dc."headwaySlow" AS "headwayAt30",
+            dc."headwayVSlow" AS "headwayAt20",
+            dc."headwayNrStat" AS "headwayAt10",
+            boolean_to_integer(dc."includePhoneTypes") AS "includePhoneTypes",
+            dc."timestampToleranceInMs"
+            FROM detector d
+            JOIN detector_configuration dc ON d.detector_id::text = dc.detector_id::text
+        </createView>
+        <rollback>
+            <createView
+                replaceIfExists="true"
+                schemaName="public"
+                viewName="configuration_view_version_1_50">
+                SELECT d.location AS "Location",
+                d.detector_name AS "OutStationName",
+                d.detector_id AS "outstationID",
+                d.carriageway,
+                d.mode AS "OutStationMode",
+                dc."pathToLocalLogFile",
+                dc."localLogFileName",
+                dc."pathLocalIniFile",
+                dc."iniFileLocalName",
+                dc."urlCongestionReporting",
+                dc."urlJourneyTimesReporting",
+                dc."urlLogFileUpload",
+                dc."urlIniFileDownload" AS "urlIniFileDwnload",
+                dc."alertTarget1",
+                dc."alertTarget2",
+                dc."alertTarget3",
+                dc."pingTestAddress",
+                dc."pingTestTimeout",
+                dc."heartBeatPeriod",
+                boolean_to_integer(dc."sendGpsData") AS "sendGpsData",
+                dc."hysteresisInterval" AS "hysterisisInterval",
+                dc."httpTimeOut",
+                dc."commsFailBufferTimeLimit",
+                boolean_to_integer(dc."debugMode") AS "debugMode",
+                boolean_to_integer(dc."upLoadErrs") AS "upLoadErrs",
+                boolean_to_integer(dc."requestLogs") AS "requestLogs",
+                boolean_to_integer(dc."rebootDevice") AS "rebootDevice",
+                dc."startIdleDate" AS "startIdlleDate",
+                dc."stopIdleDate",
+                boolean_to_integer(dc."idleDaily") AS "idleDaily",
+                dc."idleDailystartTime",
+                dc."idleDailystopTime",
+                dc."daysToIgnore",
+                dc.lanes,
+                dc."lengthOfRoad",
+                dc."averageLengthOfVehicle",
+                dc."heavyOccupancyThreshold",
+                dc."moderateOccupancyThreshold",
+                dc."lightOccupancyThreshold",
+                dc."inquiryCyclePeriod",
+                dc."queueDetectThreshold" AS "queueDetectThr",
+                dc."defaultStaticCyclesThreshold",
+                dc."staticSpeedCyclesThreshold",
+                dc."verySlowSpeedCyclesThreshold",
+                dc."slowSpeedCyclesThreshold",
+                dc."moderateSpeedCyclesThreshold",
+                dc."freeFlowSpeedCyclesThreshold",
+                dc."deviceDiscoveryMaxDevices",
+                dc."settingsCollectionInterval1",
+                dc."settingsCollectionInterval2",
+                dc."checkForUpdates",
+                dc."urlAlertAndStatusReports" AS "urlStandAloneReporting",
+                dc."failedIniFileReadRetryCounterThr",
+                dc."signatureAveragingCountMax",
+                dc."headwayFree" AS "headwayAt70",
+                dc."headwayMod" AS "headwayAt50",
+                dc."headwaySlow" AS "headwayAt30",
+                dc."headwayVSlow" AS "headwayAt20",
+                dc."headwayNrStat" AS "headwayAt10",
+                boolean_to_integer(dc."includePhoneTypes") AS "includePhoneTypes"
+                FROM detector d
+                JOIN detector_configuration dc ON d.detector_id::text = dc.detector_id::text
+            </createView>
+        </rollback>
+    </changeSet>
+    
+    <changeSet id="configuration_view_version_1_51" author="eedwards" runOnChange="true">
+        <comment>configuration_view_version_1_51</comment>
+        <createView
+            replaceIfExists="true"
+            schemaName="public"
+            viewName="configuration_view_version_1_51">
+            SELECT d.location AS "Location",
+            d.detector_name AS "OutStationName",
+            d.detector_id AS "outstationID",
+            d.carriageway,
+            d.mode AS "OutStationMode",
+            dc."pathToLocalLogFile",
+            dc."localLogFileName",
+            dc."pathLocalIniFile",
+            dc."iniFileLocalName",
+            dc."urlCongestionReporting",
+            dc."urlJourneyTimesReporting",
+            dc."urlLogFileUpload",
+            dc."urlIniFileDownload" AS "urlIniFileDwnload",
+            dc."alertTarget1",
+            dc."alertTarget2",
+            dc."alertTarget3",
+            dc."pingTestAddress",
+            dc."pingTestTimeout",
+            dc."heartBeatPeriod",
+            boolean_to_integer(dc."sendGpsData") AS "sendGpsData",
+            dc."hysteresisInterval" AS "hysterisisInterval",
+            dc."httpTimeOut",
+            dc."commsFailBufferTimeLimit",
+            boolean_to_integer(dc."debugMode") AS "debugMode",
+            boolean_to_integer(dc."upLoadErrs") AS "upLoadErrs",
+            boolean_to_integer(dc."requestLogs") AS "requestLogs",
+            boolean_to_integer(dc."rebootDevice") AS "rebootDevice",
+            dc."startIdleDate" AS "startIdlleDate",
+            dc."stopIdleDate",
+            boolean_to_integer(dc."idleDaily") AS "idleDaily",
+            dc."idleDailystartTime",
+            dc."idleDailystopTime",
+            dc."daysToIgnore",
+            dc.lanes,
+            dc."lengthOfRoad",
+            dc."averageLengthOfVehicle",
+            dc."heavyOccupancyThreshold",
+            dc."moderateOccupancyThreshold",
+            dc."lightOccupancyThreshold",
+            dc."inquiryCyclePeriod",
+            dc."queueDetectThreshold" AS "queueDetectThr",
+            dc."defaultStaticCyclesThreshold",
+            dc."staticSpeedCyclesThreshold",
+            dc."verySlowSpeedCyclesThreshold",
+            dc."slowSpeedCyclesThreshold",
+            dc."moderateSpeedCyclesThreshold",
+            dc."freeFlowSpeedCyclesThreshold",
+            dc."deviceDiscoveryMaxDevices",
+            dc."settingsCollectionInterval1",
+            dc."settingsCollectionInterval2",
+            dc."checkForUpdates",
+            dc."urlAlertAndStatusReports" AS "urlStandAloneReporting",
+            dc."failedIniFileReadRetryCounterThr",
+            dc."signatureAveragingCountMax",
+            dc."headwayFree" AS "headwayAt70",
+            dc."headwayMod" AS "headwayAt50",
+            dc."headwaySlow" AS "headwayAt30",
+            dc."headwayVSlow" AS "headwayAt20",
+            dc."headwayNrStat" AS "headwayAt10",
+            dc."speedBinFree" AS "binFree",
+            dc."speedBinMod" AS "binMod",
+            dc."speedBinSlow" AS "binSlow",
+            dc."timestampToleranceInMs"
+            FROM detector d
+            JOIN detector_configuration dc ON d.detector_id::text = dc.detector_id::text
+        </createView>
+        <rollback>
+            <createView
+                replaceIfExists="true"
+                schemaName="public"
+                viewName="configuration_view_version_1_51">
+                SELECT d.location AS "Location",
+                d.detector_name AS "OutStationName",
+                d.detector_id AS "outstationID",
+                d.carriageway,
+                d.mode AS "OutStationMode",
+                dc."pathToLocalLogFile",
+                dc."localLogFileName",
+                dc."pathLocalIniFile",
+                dc."iniFileLocalName",
+                dc."urlCongestionReporting",
+                dc."urlJourneyTimesReporting",
+                dc."urlLogFileUpload",
+                dc."urlIniFileDownload" AS "urlIniFileDwnload",
+                dc."alertTarget1",
+                dc."alertTarget2",
+                dc."alertTarget3",
+                dc."pingTestAddress",
+                dc."pingTestTimeout",
+                dc."heartBeatPeriod",
+                boolean_to_integer(dc."sendGpsData") AS "sendGpsData",
+                dc."hysteresisInterval" AS "hysterisisInterval",
+                dc."httpTimeOut",
+                dc."commsFailBufferTimeLimit",
+                boolean_to_integer(dc."debugMode") AS "debugMode",
+                boolean_to_integer(dc."upLoadErrs") AS "upLoadErrs",
+                boolean_to_integer(dc."requestLogs") AS "requestLogs",
+                boolean_to_integer(dc."rebootDevice") AS "rebootDevice",
+                dc."startIdleDate" AS "startIdlleDate",
+                dc."stopIdleDate",
+                boolean_to_integer(dc."idleDaily") AS "idleDaily",
+                dc."idleDailystartTime",
+                dc."idleDailystopTime",
+                dc."daysToIgnore",
+                dc.lanes,
+                dc."lengthOfRoad",
+                dc."averageLengthOfVehicle",
+                dc."heavyOccupancyThreshold",
+                dc."moderateOccupancyThreshold",
+                dc."lightOccupancyThreshold",
+                dc."inquiryCyclePeriod",
+                dc."queueDetectThreshold" AS "queueDetectThr",
+                dc."defaultStaticCyclesThreshold",
+                dc."staticSpeedCyclesThreshold",
+                dc."verySlowSpeedCyclesThreshold",
+                dc."slowSpeedCyclesThreshold",
+                dc."moderateSpeedCyclesThreshold",
+                dc."freeFlowSpeedCyclesThreshold",
+                dc."deviceDiscoveryMaxDevices",
+                dc."settingsCollectionInterval1",
+                dc."settingsCollectionInterval2",
+                dc."checkForUpdates",
+                dc."urlAlertAndStatusReports" AS "urlStandAloneReporting",
+                dc."failedIniFileReadRetryCounterThr",
+                dc."signatureAveragingCountMax",
+                dc."headwayFree" AS "headwayAt70",
+                dc."headwayMod" AS "headwayAt50",
+                dc."headwaySlow" AS "headwayAt30",
+                dc."headwayVSlow" AS "headwayAt20",
+                dc."headwayNrStat" AS "headwayAt10",
+                dc."speedBinFree" AS "binFree",
+                dc."speedBinMod" AS "binMod",
+                dc."speedBinSlow" AS "binSlow"
+                FROM detector d
+                JOIN detector_configuration dc ON d.detector_id::text = dc.detector_id::text
+            </createView>
+        </rollback>
+    </changeSet>
+    
+    <changeSet id="configuration_view_version_2_00" author="eedwards" runOnChange="true">
+        <comment>configuration_view_version_2_00</comment>
+        <createView
+            replaceIfExists="true"
+            schemaName="public"
+            viewName="configuration_view_version_2_00">
+            SELECT d.mode AS "outStationMode",
+            dc."urlCongestionReports",
+            dc."urlStatusReports",
+            dc."urlFaultReports",
+            dc."urlStatisticsReports",
+            dc."inquiryCyclePeriod" AS "inquiryCycleDurationInSeconds",
+            dc."inquiryPower",
+            dc."obfuscatingFunction",
+            dc."statisticsReportPeriodInSeconds",
+            dc."congestionReportPeriodInSeconds",
+            dc."statusReportPeriodInSeconds",
+            dc."backgroundLatchTimeThresholdInSeconds",
+            dc."backgroundClearanceTimeThresholdInSeconds",
+            dc."freeFlowSpeedCyclesThreshold" AS "freeFlowBinThresholdInSeconds",
+            dc."moderateSpeedCyclesThreshold" AS "moderateFlowBinThresholdInSeconds",
+            dc."verySlowSpeedCyclesThreshold" AS "verySlowFlowBinThresholdInSeconds",
+            dc."absenceThresholdInSeconds",
+            dc."queueAlertThresholdBin",
+            dc."queueDetectThreshold",
+            dc."queueClearanceThreshold",
+            dc."queueDetectionStartupIntervalInSeconds",
+            boolean_to_integer(dc."signReports") AS "signReports",
+            dc."httpResponseTimeOutInSeconds",
+            dc."httpConnectionTimeOutInSeconds",
+            dc."ntpServer",
+            dc."gsmModemSignalLevelSamplingPeriodInSeconds",
+            dc."gsmModemSignalLevelStatisticsWindowInSeconds",
+            d.location AS "Location",
+            d.detector_name AS "OutStationName",
+            d.detector_id AS "outstationID",
+            d.carriageway,
+            dc."pathToLocalLogFile",
+            dc."localLogFileName",
+            dc."pathLocalIniFile",
+            dc."iniFileLocalName",
+            dc."urlLogFileUpload",
+            dc."urlIniFileDownload",
+            dc."alertTarget1",
+            dc."alertTarget2",
+            dc."alertTarget3",
+            dc."pingTestAddress",
+            dc."pingTestTimeout",
+            dc."heartBeatPeriod",
+            boolean_to_integer(dc."sendGpsData") AS "sendGpsData",
+            dc."hysteresisInterval",
+            dc."httpTimeOut",
+            dc."commsFailBufferTimeLimit",
+            boolean_to_integer(dc."debugMode") AS "debugMode",
+            boolean_to_integer(dc."upLoadErrs") AS "upLoadErrs",
+            boolean_to_integer(dc."requestLogs") AS "requestLogs",
+            boolean_to_integer(dc."rebootDevice") AS "rebootDevice",
+            dc."startIdleDate",
+            dc."stopIdleDate",
+            boolean_to_integer(dc."idleDaily") AS "idleDaily",
+            dc."idleDailystartTime",
+            dc."idleDailystopTime",
+            dc."daysToIgnore",
+            dc.lanes,
+            dc."lengthOfRoad",
+            dc."averageLengthOfVehicle",
+            dc."headwayFree",
+            dc."headwayMod",
+            dc."headwaySlow",
+            dc."headwayVSlow",
+            dc."headwayNrStat",
+            dc."speedBinFree",
+            dc."speedBinMod",
+            dc."speedBinSlow",
+            dc."speedBinVSlow",
+            dc."speedBinNrStat",
+            dc."heavyOccupancyThreshold",
+            dc."moderateOccupancyThreshold",
+            dc."lightOccupancyThreshold",
+            dc."defaultStaticCyclesThreshold",
+            dc."staticSpeedCyclesThreshold",
+            dc."slowSpeedCyclesThreshold" AS "slowFlowBinThresholdInSeconds",
+            dc."deviceDiscoveryMaxDevices",
+            dc."settingsCollectionInterval1",
+            dc."settingsCollectionInterval2",
+            dc."checkForUpdates",
+            dc."failedIniFileReadRetryCounterThr",
+            boolean_to_integer(dc."includePhoneTypes") AS "includePhoneTypes",
+            dc."signatureAveragingCountMax",
+            dc."speedSystem",
+            dc."reportedOccupancyFormat",
+            dc."timestampToleranceInMs"
+            FROM detector d
+            JOIN detector_configuration dc ON d.detector_id::text = dc.detector_id::text
+        </createView>
+        <rollback>
+            <createView
+                replaceIfExists="true"
+                schemaName="public"
+                viewName="configuration_view_version_2_00">
+                SELECT d.mode AS "outStationMode",
+                dc."urlCongestionReports",
+                dc."urlStatusReports",
+                dc."urlFaultReports",
+                dc."urlStatisticsReports",
+                dc."inquiryCyclePeriod" AS "inquiryCycleDurationInSeconds",
+                dc."inquiryPower",
+                dc."obfuscatingFunction",
+                dc."statisticsReportPeriodInSeconds",
+                dc."congestionReportPeriodInSeconds",
+                dc."statusReportPeriodInSeconds",
+                dc."backgroundLatchTimeThresholdInSeconds",
+                dc."backgroundClearanceTimeThresholdInSeconds",
+                dc."freeFlowSpeedCyclesThreshold" AS "freeFlowBinThresholdInSeconds",
+                dc."moderateSpeedCyclesThreshold" AS "moderateFlowBinThresholdInSeconds",
+                dc."verySlowSpeedCyclesThreshold" AS "verySlowFlowBinThresholdInSeconds",
+                dc."absenceThresholdInSeconds",
+                dc."queueAlertThresholdBin",
+                dc."queueDetectThreshold",
+                dc."queueClearanceThreshold",
+                dc."queueDetectionStartupIntervalInSeconds",
+                boolean_to_integer(dc."signReports") AS "signReports",
+                dc."httpResponseTimeOutInSeconds",
+                dc."httpConnectionTimeOutInSeconds",
+                dc."ntpServer",
+                dc."gsmModemSignalLevelSamplingPeriodInSeconds",
+                dc."gsmModemSignalLevelStatisticsWindowInSeconds",
+                d.location AS "Location",
+                d.detector_name AS "OutStationName",
+                d.detector_id AS "outstationID",
+                d.carriageway,
+                dc."pathToLocalLogFile",
+                dc."localLogFileName",
+                dc."pathLocalIniFile",
+                dc."iniFileLocalName",
+                dc."urlLogFileUpload",
+                dc."urlIniFileDownload",
+                dc."alertTarget1",
+                dc."alertTarget2",
+                dc."alertTarget3",
+                dc."pingTestAddress",
+                dc."pingTestTimeout",
+                dc."heartBeatPeriod",
+                boolean_to_integer(dc."sendGpsData") AS "sendGpsData",
+                dc."hysteresisInterval",
+                dc."httpTimeOut",
+                dc."commsFailBufferTimeLimit",
+                boolean_to_integer(dc."debugMode") AS "debugMode",
+                boolean_to_integer(dc."upLoadErrs") AS "upLoadErrs",
+                boolean_to_integer(dc."requestLogs") AS "requestLogs",
+                boolean_to_integer(dc."rebootDevice") AS "rebootDevice",
+                dc."startIdleDate",
+                dc."stopIdleDate",
+                boolean_to_integer(dc."idleDaily") AS "idleDaily",
+                dc."idleDailystartTime",
+                dc."idleDailystopTime",
+                dc."daysToIgnore",
+                dc.lanes,
+                dc."lengthOfRoad",
+                dc."averageLengthOfVehicle",
+                dc."headwayFree",
+                dc."headwayMod",
+                dc."headwaySlow",
+                dc."headwayVSlow",
+                dc."headwayNrStat",
+                dc."speedBinFree",
+                dc."speedBinMod",
+                dc."speedBinSlow",
+                dc."speedBinVSlow",
+                dc."speedBinNrStat",
+                dc."heavyOccupancyThreshold",
+                dc."moderateOccupancyThreshold",
+                dc."lightOccupancyThreshold",
+                dc."defaultStaticCyclesThreshold",
+                dc."staticSpeedCyclesThreshold",
+                dc."slowSpeedCyclesThreshold" AS "slowFlowBinThresholdInSeconds",
+                dc."deviceDiscoveryMaxDevices",
+                dc."settingsCollectionInterval1",
+                dc."settingsCollectionInterval2",
+                dc."checkForUpdates",
+                dc."failedIniFileReadRetryCounterThr",
+                boolean_to_integer(dc."includePhoneTypes") AS "includePhoneTypes",
+                dc."signatureAveragingCountMax",
+                dc."speedSystem",
+                dc."reportedOccupancyFormat"
+                FROM detector d
+                JOIN detector_configuration dc ON d.detector_id::text = dc.detector_id::text
+            </createView>
+        </rollback>
+    </changeSet> 
+    
+    <changeSet id="most_recent_occupancy_view" author="nchavan" runOnChange="true">
+        <comment>most_recent_occupancy_view</comment>
+        <createView
+            replaceIfExists="true"
+            schemaName="public"
+            viewName="most_recent_occupancy_view">
+             SELECT detector.detector_id,
+                    detector.detector_name,
+                    occupancy.reported_timestamp,
+                    occupancy.stationary,
+                    occupancy.very_slow,
+                    occupancy.slow,
+                    occupancy.moderate,
+                    occupancy.free,
+                        CASE
+                            WHEN occupancy.queue_present = 9 THEN 'QUEUEING'::text
+                            WHEN occupancy.queue_present = 0 THEN 'NO QUEUE'::text
+                            ELSE 'CALCULATING'::text
+                        END AS queue
+                   FROM detector
+                   LEFT JOIN occupancy ON detector.detector_id::text = occupancy.detector_id::text
+                   JOIN ( SELECT occupancy_1.detector_id,
+                       max(occupancy_1.reported_timestamp) AS reported_timestamp
+                   FROM occupancy occupancy_1
+                   GROUP BY occupancy_1.detector_id) most_recent_occupancy ON detector.detector_id::text = most_recent_occupancy.detector_id::text AND occupancy.reported_timestamp = most_recent_occupancy.reported_timestamp AND occupancy.reported_timestamp > (now() - '00:05:00'::interval);
+        </createView>
+        <rollback>
+            <createView
+                replaceIfExists="true"
+                schemaName="public"
+                viewName="most_recent_occupancy_view">
+                SELECT detector.detector_id,
+                       detector.detector_name,
+                       occupancy.reported_timestamp,
+                       occupancy.stationary,
+                       occupancy.very_slow,
+                       occupancy.slow,
+                       occupancy.moderate,
+                       occupancy.free,
+                           CASE
+                               WHEN (occupancy.queue_start_timestamp IS NOT NULL) THEN 'QUEUEING'::text
+                               WHEN (occupancy.queue_end_timestamp IS NOT NULL) THEN 'FREE'::text
+                               ELSE 'CALCULATING'::text
+                           END AS queue
+                       FROM ((detector
+                        LEFT JOIN occupancy ON (((detector.detector_id)::text = (occupancy.detector_id)::text)))
+                        JOIN ( SELECT occupancy_1.detector_id,
+                               max(occupancy_1.reported_timestamp) AS reported_timestamp
+                              FROM occupancy occupancy_1
+                              GROUP BY occupancy_1.detector_id) most_recent_occupancy ON (((((detector.detector_id)::text = (most_recent_occupancy.detector_id)::text) AND (occupancy.reported_timestamp = most_recent_occupancy.reported_timestamp)) AND (occupancy.reported_timestamp > (now() - '00:05:00'::interval)))));
+            </createView>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

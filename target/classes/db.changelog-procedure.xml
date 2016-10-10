@@ -1,0 +1,361 @@
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd
+    http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+    
+    <preConditions>
+      <dbms type="postgresql" />
+    </preConditions>
+     
+    <changeSet id="find_journey_2_00" author="nchavan" runOnChange="true">
+        <comment>find_journey_2_00</comment>
+        <createProcedure procedureName="find_journey_2_00"
+            schemaName="public">
+
+            CREATE OR REPLACE FUNCTION find_journey_2_00()
+              RETURNS trigger AS
+            $BODY$
+            DECLARE 
+                    found_span 	record;
+                    last_seen_at_start_detector timestamp;
+                    first_seen_at_end_detector timestamp;
+                    journey_time interval;
+                    detector_stat_update timestamp;
+            BEGIN
+
+            first_seen_at_end_detector := first_seen 
+            FROM statistics_device 
+            WHERE addr = NEW.addr
+            AND detector_id = NEW.detector_id
+            ORDER BY first_seen DESC NULLS FIRST LIMIT 1;
+
+            FOR found_span IN SELECT 
+                    span.span_name,
+                    span.start_detector_id	
+                    FROM span 
+                    WHERE		
+                    span.end_detector_id = NEW.detector_id
+            LOOP    
+                    last_seen_at_start_detector := last_seen 
+                    FROM statistics_device 
+                    WHERE addr = NEW.addr
+                    AND detector_id = found_span.start_detector_id
+                    ORDER BY last_seen DESC NULLS FIRST LIMIT 1;
+
+                    IF(last_seen_at_start_detector IS NOT NULL 
+                    AND NEW.first_seen &gt; last_seen_at_start_detector 
+                    AND (first_seen_at_end_detector IS NULL OR 
+                    (NEW.first_seen &gt; first_seen_at_end_detector AND last_seen_at_start_detector &gt; first_seen_at_end_detector))) THEN
+
+                            journey_time := NEW.first_seen - last_seen_at_start_detector;
+
+                            IF (journey_time &lt; '01:00:00'::interval) THEN		
+                                    INSERT INTO span_journey_detection_cache (			
+                                            duration,
+                                            span_name,
+                                            completed_timestamp
+                                    )
+                                    VALUES
+                                    (
+                                            journey_time,
+                                            found_span.span_name,
+                                            NEW.first_seen
+                                    ); 
+                                    INSERT INTO span_journey_detection (			
+                                            duration,
+                                            span_name,
+                                            completed_timestamp
+                                    )
+                                    VALUES
+                                    (
+                                            journey_time,
+                                            found_span.span_name,
+                                            NEW.first_seen
+                                    ); 			
+                            END IF;
+
+                    END IF;  
+            END LOOP;
+
+            detector_stat_update := last_detection_timestamp FROM detector_statistic WHERE detector_id = NEW.detector_id;
+
+                    IF (detector_stat_update IS NULL OR detector_stat_update &lt; NEW.last_seen) THEN
+                        UPDATE detector_statistic
+                        SET last_detection_timestamp = NEW.last_seen
+                        WHERE detector_id = NEW.detector_id;
+                    END IF;
+            
+            RETURN NEW;
+
+            END;
+
+            $BODY$
+              LANGUAGE plpgsql VOLATILE
+              COST 100;
+            ALTER FUNCTION find_journey_2_00()
+              OWNER TO bluetruth;
+       </createProcedure>
+       <rollback>
+           <createProcedure procedureName="find_journey_2_00"  
+                            schemaName="public">
+            CREATE OR REPLACE FUNCTION find_journey_2_00()
+              RETURNS trigger AS
+            $BODY$
+            DECLARE 
+                    found_span 	record;
+                    last_seen_at_start_detector timestamp;
+                    first_seen_at_end_detector timestamp;
+                    journey_time 	interval;
+            BEGIN
+
+            first_seen_at_end_detector := first_seen 
+            FROM statistics_device 
+            WHERE addr = NEW.addr
+            AND detector_id = NEW.detector_id
+            ORDER BY first_seen DESC NULLS FIRST LIMIT 1;
+
+            FOR found_span IN SELECT 
+                    span.span_name,
+                    span.start_detector_id	
+                    FROM span 
+                    WHERE		
+                    span.end_detector_id = NEW.detector_id
+
+            LOOP    
+
+                    last_seen_at_start_detector := last_seen 
+                    FROM statistics_device 
+                    WHERE addr = NEW.addr
+                    AND detector_id = found_span.start_detector_id
+                    ORDER BY last_seen DESC NULLS FIRST LIMIT 1;
+
+                    IF(last_seen_at_start_detector IS NOT NULL 
+                         AND NEW.first_seen &gt; last_seen_at_start_detector 
+                    AND (first_seen_at_end_detector IS NULL OR 
+                         (NEW.first_seen &gt; first_seen_at_end_detector AND last_seen_at_start_detector &gt; first_seen_at_end_detector))) THEN
+
+                            journey_time := NEW.first_seen - last_seen_at_start_detector;
+
+                                 IF(journey_time &lt; '01:00:00'::interval) THEN		
+                                    INSERT INTO span_journey_detection_cache (			
+                                            duration,
+                                            span_name,
+                                            completed_timestamp
+                                    )
+                                    VALUES
+                                    (
+                                            journey_time,
+                                            found_span.span_name,
+                                            NEW.first_seen
+                                    ); 
+                                    INSERT INTO span_journey_detection (			
+                                            duration,
+                                            span_name,
+                                            completed_timestamp
+                                    )
+                                    VALUES
+                                    (
+                                            journey_time,
+                                            found_span.span_name,
+                                            NEW.first_seen
+                                    ); 			
+                            END IF;
+
+                    END IF;  
+            END LOOP;
+
+            UPDATE detector_statistic
+            SET last_detection_timestamp = NEW.last_seen
+            WHERE detector_id = NEW.detector_id;
+            
+            RETURN NEW;
+            
+            END;
+
+            $BODY$
+              LANGUAGE plpgsql VOLATILE
+              COST 100;
+            ALTER FUNCTION find_journey_2_00()
+              OWNER TO bluetruth;
+              
+            </createProcedure>
+       </rollback>
+    </changeSet>
+    
+    
+    <changeSet id="find_journey" author="nchavan" runOnChange="true">
+        <comment>find_journey</comment>
+        <createProcedure procedureName="find_journey"
+            schemaName="public">
+            CREATE OR REPLACE FUNCTION find_journey()
+              RETURNS trigger AS
+            $BODY$
+            DECLARE 
+                    found_span record;
+                    last_found_at_start_detector timestamp;
+                    last_found_at_end_detector timestamp;
+                    journey_time interval;
+                    detector_stat_update timestamp;
+            BEGIN
+
+            last_found_at_end_detector := detection_timestamp 
+            FROM device_detection 
+            WHERE device_id = NEW.device_id
+            AND detector_id = NEW.detector_id
+            ORDER BY detection_timestamp DESC NULLS FIRST LIMIT 1;
+
+            FOR found_span IN SELECT 
+                    span.span_name,
+                    span.start_detector_id	
+                    FROM span 
+                    WHERE		
+                    span.end_detector_id = NEW.detector_id
+
+            LOOP    
+
+                    last_found_at_start_detector := detection_timestamp 
+                    FROM device_detection 
+                    WHERE device_id = NEW.device_id
+                    AND detector_id = found_span.start_detector_id
+                    ORDER BY detection_timestamp DESC NULLS FIRST LIMIT 1;
+
+                    IF(last_found_at_start_detector IS NOT NULL 
+                      AND NEW.detection_timestamp &gt; last_found_at_start_detector 
+                    AND (last_found_at_end_detector IS NULL OR 
+                      (NEW.detection_timestamp &gt; last_found_at_end_detector AND last_found_at_start_detector &gt; last_found_at_end_detector))) THEN
+
+                            journey_time := NEW.detection_timestamp - last_found_at_start_detector;
+
+                              IF(journey_time &lt; '01:00:00'::interval) THEN		
+                                    INSERT INTO span_journey_detection_cache (			
+                                            duration,
+                                            span_name,
+                                            completed_timestamp
+                                    )
+                                    VALUES
+                                    (
+                                            journey_time,
+                                            found_span.span_name,
+                                            NEW.detection_timestamp
+                                    ); 
+                                    INSERT INTO span_journey_detection (			
+                                            duration,
+                                            span_name,
+                                            completed_timestamp
+                                    )
+                                    VALUES
+                                    (
+                                            journey_time,
+                                            found_span.span_name,
+                                            NEW.detection_timestamp
+                                    ); 			
+                            END IF;
+                    END IF;  
+            END LOOP;
+            
+            detector_stat_update := last_detection_timestamp FROM detector_statistic WHERE detector_id = NEW.detector_id;
+
+                    IF (detector_stat_update IS NULL OR detector_stat_update &lt; NEW.detection_timestamp) THEN
+                        UPDATE detector_statistic
+                        SET last_detection_timestamp = NEW.detection_timestamp
+                        WHERE detector_id = NEW.detector_id;
+                    END IF;
+            
+            RETURN NEW;
+            
+            END;
+
+            $BODY$
+              LANGUAGE plpgsql VOLATILE
+              COST 100;
+            ALTER FUNCTION find_journey()
+              OWNER TO bluetruth;
+       </createProcedure>
+       <rollback>
+           <createProcedure procedureName="find_journey"
+            schemaName="public">
+            CREATE OR REPLACE FUNCTION find_journey()
+              RETURNS trigger AS
+            $BODY$
+            DECLARE 
+                    found_span 	record;
+                    last_found_at_start_detector timestamp;
+                    last_found_at_end_detector timestamp;
+                    journey_time 	interval;
+            BEGIN
+
+            last_found_at_end_detector := detection_timestamp 
+            FROM device_detection 
+            WHERE device_id = NEW.device_id
+            AND detector_id = NEW.detector_id
+            ORDER BY detection_timestamp DESC NULLS FIRST LIMIT 1;
+
+            FOR found_span IN SELECT 
+                    span.span_name,
+                    span.start_detector_id	
+                    FROM span 
+                    WHERE		
+                    span.end_detector_id = NEW.detector_id
+            LOOP    
+                    last_found_at_start_detector := detection_timestamp 
+                    FROM device_detection 
+                    WHERE device_id = NEW.device_id
+                    AND detector_id = found_span.start_detector_id
+                    ORDER BY detection_timestamp DESC NULLS FIRST LIMIT 1;
+
+                    IF(last_found_at_start_detector IS NOT NULL 
+                    AND NEW.detection_timestamp &gt; last_found_at_start_detector 
+                    AND (last_found_at_end_detector IS NULL OR 
+                    (NEW.detection_timestamp &gt; last_found_at_end_detector AND last_found_at_start_detector &gt; last_found_at_end_detector))) THEN
+
+                            journey_time := NEW.detection_timestamp - last_found_at_start_detector;
+
+                            IF(journey_time &lt; '01:00:00'::interval) THEN		
+                                    INSERT INTO span_journey_detection_cache (			
+                                            duration,
+                                            span_name,
+                                            completed_timestamp
+                                    )
+                                    VALUES
+                                    (
+                                            journey_time,
+                                            found_span.span_name,
+                                            NEW.detection_timestamp
+                                    ); 
+                                    INSERT INTO span_journey_detection (			
+                                            duration,
+                                            span_name,
+                                            completed_timestamp
+                                    )
+                                    VALUES
+                                    (
+                                            journey_time,
+                                            found_span.span_name,
+                                            NEW.detection_timestamp
+                                    ); 			
+                            END IF;
+
+                    END IF;  
+            END LOOP;
+
+            UPDATE detector_statistic
+            SET last_detection_timestamp = NEW.detection_timestamp
+            WHERE detector_id = NEW.detector_id;
+
+            RETURN NEW;
+
+            END;
+
+            $BODY$
+              LANGUAGE plpgsql VOLATILE
+              COST 100;
+            ALTER FUNCTION find_journey()
+              OWNER TO bluetruth;
+            
+           </createProcedure>    
+       </rollback>
+    </changeSet>
+    
+</databaseChangeLog>

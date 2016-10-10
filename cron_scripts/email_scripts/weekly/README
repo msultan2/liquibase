@@ -1,0 +1,7 @@
+1. Copy email scripts onto the SECONDARY BLUETRUTH server in folder /home/admin/livescripts/live
+
+2. Below scripts are scheduled to run weekly once 
+    2.1. bluetruth_dartford_span_journey (runs on friday at 7 am)
+    2.2. bluetruth_kent_span_journey     (runs on friday at 9 am)
+
+NOTE: bluetruth_dover_span_journey is not scheduled to run (NOT USED)

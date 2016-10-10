@@ -1,0 +1,2 @@
+date >> /logs/database_clean_device_detections.log
+/usr/bin/psql -U postgres bluetruth -c "DELETE FROM device_detection WHERE detection_timestamp < (NOW() - interval '1 hour')" >> /logs/database_clean_device_detections.log

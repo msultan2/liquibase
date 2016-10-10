@@ -1,0 +1,2 @@
+date >> /logs/database_clean_statistics_device.log
+/usr/bin/psql -U postgres -h localhost bluetruth -c "delete from statistics_device where last_seen < (now() - interval '1 hour') or first_seen < (now() - interval '2 hours')" >> /logs/database_clean_statistics_device.log

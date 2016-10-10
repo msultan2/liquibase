@@ -1,0 +1,159 @@
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd
+    http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+    
+    <changeSet id="changelog-6.05.1" author="eedwards">
+        <comment>Added column: detector_configuration.timestampToleranceInMs</comment>
+        <addColumn tableName="detector_configuration">
+            <column name="timestampToleranceInMs" type="int" defaultValue="5000">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    
+    <changeSet author="josetrujillo-brenes" id="changelog-6.05.1">
+        <comment>Default value for detectors mode should be 0</comment>
+        <addDefaultValue tableName="detector" columnDataType="int" columnName="mode" defaultValue="0"/>
+        <rollback>
+            <addDefaultValue tableName="detector" columnDataType="int" columnName="mode" defaultValue="3"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet author="josetrujillo-brenes" id="changelog-6.05.2">
+        <comment>All detectors currently in mode 0 must change to mode 1</comment>
+        <update tableName="detector">
+            <column name="mode" value='1' type="int"/>
+            <where>mode='0'</where>
+        </update>
+        <rollback/>
+    </changeSet>
+
+    <!--DEFAULT CONFIGRATION CHANGES-->
+    <changeSet author="nchavan" id="changelog-6.05.2">
+        <comment>Create default configration table</comment>
+        <createTable tableName="default_configuration">
+            <column name="property" type="varchar"/>
+            <column name="value" type="varchar"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="nchavan" id="changelog-6.05.3">
+        <comment>Inserting values in default configration table</comment>
+        <insert tableName="default_configuration">
+            <column name="property" value="statisticsReportContents" />
+            <column name="value" value="full" />
+        </insert>
+        <insert tableName="default_configuration">
+            <column name="property" value="missingDeviceDetectionsToConsiderDead" />
+            <column name="value" value="3" />
+        </insert>
+        <insert tableName="default_configuration">
+            <column name="property" value="congestionReportDelayInSeconds" />
+            <column name="value" value="5" />
+        </insert>
+        <insert tableName="default_configuration">
+            <column name="property" value="absenceThresholdInSeconds" />
+            <column name="value" value="60" />
+        </insert>
+        <insert tableName="default_configuration">
+            <column name="property" value="backgroundClearanceTimeThresholdInSeconds" />
+            <column name="value" value="345600" />
+        </insert>
+        <insert tableName="default_configuration">
+            <column name="property" value="backgroundLatchTimeThresholdInSeconds" />
+            <column name="value" value="60" />
+        </insert>
+        <insert tableName="default_configuration">
+            <column name="property" value="queueAlertThresholdBin" />
+            <column name="value" value="4" />
+        </insert>
+        <insert tableName="default_configuration">
+            <column name="property" value="queueClearanceThreshold" />
+            <column name="value" value="3" />
+        </insert>
+        <insert tableName="default_configuration">
+            <column name="property" value="queueDetectionStartupIntervalInSeconds" />
+            <column name="value" value="60" />
+        </insert>
+        <rollback>
+            <delete tableName="default_configuration">
+                <where>property='statisticsReportContents'</where> 
+            </delete>
+            <delete tableName="default_configuration">
+                <where>property='missingDeviceDetectionsToConsiderDead'</where> 
+            </delete>
+            <delete tableName="default_configuration">
+                <where>property='congestionReportDelayInSeconds'</where> 
+            </delete>
+            <delete tableName="default_configuration">
+                <where>property='absenceThresholdInSeconds'</where> 
+            </delete>
+            <delete tableName="default_configuration">
+                <where>property='backgroundClearanceTimeThresholdInSeconds'</where> 
+            </delete>
+            <delete tableName="default_configuration">
+                <where>property='backgroundLatchTimeThresholdInSeconds'</where> 
+            </delete>
+            <delete tableName="default_configuration">
+                <where>property='queueAlertThresholdBin'</where> 
+            </delete>
+            <delete tableName="default_configuration">
+                <where>property='queueClearanceThreshold'</where> 
+            </delete>
+            <delete tableName="default_configuration">
+                <where>property='queueDetectionStartupIntervalInSeconds'</where> 
+            </delete>
+        </rollback>
+    </changeSet>
+    
+    <changeSet author="eedwards" id="changelog-6.05.4">
+        <comment>Insert timestampToleranceInMs into default configration table</comment>
+        <insert tableName="default_configuration">
+            <column name="property" value="timestampToleranceInMs" />
+            <column name="value" value="5000" />
+        </insert>
+        <rollback>
+            <delete tableName="default_configuration">
+                <where>property='timestampToleranceInMs'</where> 
+            </delete>
+        </rollback>
+    </changeSet>
+    <!--END OF DFAULT CONFIGRATION CHANGES-->
+    
+    <!--CHART CHANGES--> 
+    <changeSet id="changelog-6.05.2" author="svenkataramanappa">
+        <comment>Create the chart sequence</comment>
+        <createSequence sequenceName="chart_id_seq" 
+                        incrementBy="1" 
+                        minValue="1" 
+                        maxValue="9223372036854775807"
+                        startValue="1"/>
+    </changeSet>
+    
+    <changeSet id="changelog-6.05.3" author="svenkataramanappa" >
+        <comment>Create the chart table</comment>
+        <createTable tableName="chart">
+            <column name="id" type="bigint" defaultValueSequenceNext="chart_id_seq">
+                <constraints primaryKey="true" primaryKeyName="chart_id_pk"/>
+            </column>
+            <column name="chart_image_data" type="bytea"/>
+            <column name="complete" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="parameters" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_timestamp" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <!--END OF CHART CHANGES-->
+    
+</databaseChangeLog>

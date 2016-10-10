@@ -1,0 +1,2 @@
+date >> /logs/database_clean_detector_message.log
+/usr/bin/psql -U postgres bluetruth -c "DELETE FROM detector_message WHERE recorded_timestamp < (NOW() - interval '1 week')" >> /logs/database_clean_detector_message.log

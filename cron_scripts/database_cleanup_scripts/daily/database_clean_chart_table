@@ -1,0 +1,2 @@
+date >> /logs/database_clean_chart_table.log
+/usr/bin/psql -U postgres bluetruth -c "DELETE FROM chart WHERE created_timestamp < (NOW() - interval '1 day')" >> /logs/database_clean_chart_table.log
